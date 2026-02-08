@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Aiden's File Scanner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="https://img.icons8.com/ios_filled/512/228BE6/roblox.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#f5f7fb;--panel:#ffffff;--text:#0f172a;--muted:#64748b;
+--accent:#1e40af;--accent-glow:#2563eb;--safe:#22c55e;--warn:#f59e0b;--danger:#ef4444;
+--star:#ffffff;
+}
+[data-theme="dark"]{
+--bg:#070b1f;--panel:#0f172a;--text:#e5e7eb;--muted:#94a3b8;
+--star:#ffffff;
+}
+body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);}
+header,.container,footer{position:relative;z-index:1;}
+header{display:flex;align-items:center;justify-content:space-between;padding:26px 48px;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand img{width:46px;height:46px;}
+.brand h1{margin:0;font-size:2rem;font-weight:700;background:linear-gradient(90deg,var(--accent),var(--accent-glow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 18px rgba(37,99,235,.35);}
+#themeToggle{background:linear-gradient(45deg,#2563eb,#1e40af);border:none;color:white;padding:10px 18px;border-radius:999px;cursor:pointer;font-weight:600;}
+button{font-weight:600;cursor:pointer;}
+.container{max-width:1100px;margin:auto;padding:0 24px 100px;}
+.upload{margin-top:50px;border:2px dashed rgba(37,99,235,.4);border-radius:26px;padding:90px 40px;text-align:center;cursor:pointer;}
+.upload input{display:none;}
+.results{margin-top:50px;display:grid;gap:28px;}
+.card{background:var(--panel);border-radius:22px;padding:30px;box-shadow:0 30px 90px rgba(0,0,0,0.12);}
+.percent{font-weight:700;font-size:1rem;}
+.safe{color:var(--safe);}
+.warn{color:var(--warn);}
+.danger{color:var(--danger);}
+.more{margin-top:12px;display:none;font-size:0.95rem;line-height:1.4;}
+.more ul{padding-left:18px;}
+.more-btn{margin-top:10px;background:linear-gradient(45deg,#2563eb,#1e40af);border:none;color:white;padding:10px 18px;border-radius:999px;cursor:pointer;font-weight:600;}
+.export-log-btn{margin-top:10px;background:linear-gradient(45deg,#2563eb,#1e40af);border:none;padding:10px 12px;border-radius:999px;display:flex;align-items:center;justify-content:center;}
+.export-log-btn img{width:20px;height:20px;filter: invert(1);}
+footer{margin-top:50px;text-align:center;font-size:1.1rem;color:var(--text);line-height:1.6;}
+</style>
+</head>
+<body data-theme="light">
+<header>
+<div class="brand">
+<img src="https://img.icons8.com/ios_filled/512/228BE6/roblox.png">
+<h1>Aiden's File Scanner</h1>
+</div>
+<button id="themeToggle">Light/Dark</button>
+</header>
+<div class="container">
+<div class="upload" id="upload">
+<h2>Drop Files</h2>
+<p>.rbxl .rbxm .lua</p>
+<input type="file" id="files" multiple>
+</div>
+<div class="results" id="results"></div>
+<footer>
+<div>
+⚠️ This is an informational, educational tool.<br>
+Results are static heuristic analysis only.<br>
+Credits: Aiden
+</div>
+</footer>
+</div>
+<script>
+const uploadDiv=document.getElementById("upload");
+const fileInput=document.getElementById("files");
+const results=document.getElementById("results");
+uploadDiv.addEventListener("click",()=>fileInput.click());
+uploadDiv.addEventListener("dragover",e=>{e.preventDefault();});
+uploadDiv.addEventListener("dragleave",()=>{});
+uploadDiv.addEventListener("drop",e=>{e.preventDefault();handleFiles(e.dataTransfer.files);});
+fileInput.addEventListener("change",()=>handleFiles(fileInput.files));
+document.getElementById("themeToggle").onclick=()=>{document.body.dataset.theme=document.body.dataset.theme==="dark"?"light":"dark";}
+async function computeHash(file){const buffer=await file.arrayBuffer();const hashBuffer=await crypto.subtle.digest("SHA-256", buffer);return Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+function entropy(text){let f={},e=0;for(let c of text)f[c]=(f[c]||0)+1;for(let k in f){let p=f[k]/text.length;e-=p*Math.log2(p);}return e.toFixed(2);}
+function makeFingerprint(hash,size,entropy,lines){return `${hash}|${size}|${entropy}|${lines}`;}
+async function checkFingerprint(fp){const res=await fetch("/.netlify/functions/check",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fingerprint:fp})});return res.json();}
+function handleFiles(files){results.innerHTML="";Array.from(files).forEach(async file=>{const reader=new FileReader();reader.onload=async e=>{const text=e.target.result;const fileHash=await computeHash(file);const fp=makeFingerprint(fileHash,file.size,entropy(text),text.split("\n").length);const serverData=await checkFingerprint(fp);let danger=0;let hits=[];if(/loadstring\s*\(/i.test(text)){danger+=30;hits.push("Dynamic Execution");}if(/HttpGet|HttpPost/i.test(text)){danger+=20;hits.push("Remote Code Loading");}let leakLabel="";if(serverData.status==="leaked")leakLabel=" (LEAKED)";else if(serverData.status==="potentially_leaked")leakLabel=" (POTENTIALLY LEAKED)";else if(serverData.status==="shared")leakLabel=" (SHARED)";const card=document.createElement("div");card.className="card";card.innerHTML=`<div class="file-header"><strong>${file.name}</strong> <span class="percent ${danger>60?'danger':danger>30?'warn':'safe'}">${danger}%${leakLabel}</span></div><button class="more-btn">More Info</button><div class="more"><ul><li>Size: ${file.size} bytes</li><li>Lines: ${text.split("\n").length}</li><li>Entropy: ${entropy(text)}</li><li>Detected: ${hits.join(", ") || "None"}</li><li>Seen: ${serverData.count} times</li></ul></div>`;results.appendChild(card);const more=card.querySelector(".more");const btn=card.querySelector(".more-btn");btn.addEventListener("click",()=>{more.style.display=more.style.display==="none"?"block":"none";});};reader.readAsText(file);});}
+</script>
+</body>
+</html>
